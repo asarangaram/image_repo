@@ -135,3 +135,23 @@ class ImageModel(db.Model):
             raise ImageModelException("Item is not found; Not deleted")
         except Exception as e:
             return str(e)
+    
+    @classmethod
+    def delete_all(cls):
+        try:
+            all = cls.find_all()
+            if all:
+                result = {}
+                for image in all:
+                    err = cls.delete(_id = image.id)
+                    if err:
+                        result[image.id] = err
+                if result:
+                    ImageModelException(
+                        "not all images are deleted"
+                    )
+                return {"success": "all images deleted"}, None
+            raise ImageModelException("No image found" )
+        except Exception as e:
+            return None, str(e)
+        

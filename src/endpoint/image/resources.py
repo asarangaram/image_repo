@@ -68,4 +68,9 @@ class Images(Resource):
         if e:
             return {"message": e}, 400
         return {"images": all}
-            
+    def delete(cls):
+        all, e = ImageModel.delete_all()
+        if e:
+            return {"message": e}, 400
+        return {"images": all}
+        
