@@ -4,10 +4,10 @@ import shutil
 from werkzeug.datastructures import FileStorage
 from datetime import datetime
 
-from db import db
-from config import ConfigClass
-from image_proc import hash
-from image_proc.file_utilities import load_image_from_werkzeug_cache as image_loader
+from ...db import db
+from ...config import ConfigClass
+from ...image_proc import hash
+from ...image_proc.file_utilities import load_image_from_werkzeug_cache as image_loader
 
 class ImageModelException(Exception):
     pass

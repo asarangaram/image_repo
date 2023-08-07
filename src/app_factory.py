@@ -2,10 +2,10 @@
 
 from flask import Flask
 
-from db import db
-from endpoint.landing.blueprint import landing_bp
-from endpoint.image.blueprints import image_bp
-import lock  
+from .db import db
+from .endpoint.landing.blueprint import landing_bp
+from .endpoint.image.blueprints import image_bp
+from . import lock  
 def create_app(config_object):
     
     if lock.instance_already_running(config_object):

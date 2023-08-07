@@ -1,7 +1,7 @@
 # wsgi.py
 
-from app_factory import create_app
-from config import ConfigClass
+from .app_factory import create_app
+from .config import ConfigClass
 
 app = create_app(ConfigClass)
 

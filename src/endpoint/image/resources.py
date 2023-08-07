@@ -1,16 +1,23 @@
 from flask import request, send_file
 from flask_restful import Resource
+import logging
 
 from .models import ImageModel
 
+class RepoException(Exception):
+    pass
+
 class Upload(Resource):
     def post(cls):
+        logging.debug("post called")        
         try:
             if "image" not in request.files:
-                raise "No image provided"
+                logging.debug("No image provided")        
+                raise RepoException("No image provided")
             image = request.files["image"]
             if image.filename == "":
-                raise "No image name provided"
+                logging.debug("No image name provided")        
+                raise RepoException("No image name provided")
             object, err = ImageModel.create(image=image)
             result = {} 
             if object:
@@ -22,7 +29,8 @@ class Upload(Resource):
             
             return result, 201
         except Exception as e:
-            return {"message": e}, 400
+            logging.debug(str(e))        
+            return {"message": str(e)}, 400
 
 class Image(Resource):
     def get(cls, image_id: int):
