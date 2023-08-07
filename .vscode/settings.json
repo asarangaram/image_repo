@@ -1,11 +1,14 @@
 {
     "cSpell.words": [
         "anandas",
+        "jsonify",
+        "mylogger",
         "onedrive",
         "pymysql",
         "SIGTERM",
         "SQLALCHEMY",
         "tendo",
-        "werkzeug"
+        "werkzeug",
+        "wsgi"
     ]
 }
