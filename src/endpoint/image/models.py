@@ -1,3 +1,4 @@
+import json
 import os
 import shutil
 
@@ -8,9 +9,12 @@ from ...db import db
 from ...config import ConfigClass
 from ...image_proc import hash
 from ...image_proc.file_utilities import load_image_from_werkzeug_cache as image_loader
+from ...image_proc.exif import ExifTool
+
 
 class ImageModelException(Exception):
     pass
+
 
 class ImageModel(db.Model):
     __private_key = object()
@@ -24,6 +28,8 @@ class ImageModel(db.Model):
     thumbnail = db.Column(db.LargeBinary, default=b"")
     hash_json = db.Column(db.JSON, default={})
     sha512hash = db.Column(db.String(128), nullable=False, unique=True)
+    create_on_the_fly = True
+    force_load_from_image = True
 
     def __init__(self, image, sha512hash, private_key=None):
         if private_key != ImageModel.__private_key:
@@ -58,7 +64,7 @@ class ImageModel(db.Model):
     def jsonify(self):
         result = {
             "upload time": self.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-            
+
         }
         return result
 
@@ -102,13 +108,14 @@ class ImageModel(db.Model):
     @classmethod
     def get(cls, _id):
         try:
-            item = cls.find_by_id(_id)
-            if item:
-                return item, None
-            raise ImageModelException("Item not found")
+            image = cls.find_by_id(_id)
+            if image:
+                return image, None
+            raise ImageModelException("image not found")
 
         except Exception as e:
             return None, str(e)
+
     @classmethod
     def get_all(cls):
         try:
@@ -118,24 +125,24 @@ class ImageModel(db.Model):
                 for image in all:
                     result[image.id] = image.jsonify()
                 return result, None
-            raise ImageModelException("No image found" )
+            raise ImageModelException("No image found")
         except Exception as e:
             return None, str(e)
-    
+
     @classmethod
     def delete(cls, _id: int):
         try:
-            item = cls.find_by_id(_id)
+            image = cls.find_by_id(_id)
 
-            if item:
-                print(f"PATH IS {item.path}")
-                shutil.rmtree(os.path.dirname(item.path))
-                item.delete_from_db()
+            if image:
+                print(f"PATH IS {image.path}")
+                shutil.rmtree(os.path.dirname(image.path))
+                image.delete_from_db()
                 return None
-            raise ImageModelException("Item is not found; Not deleted")
+            raise ImageModelException("image is not found; Not deleted")
         except Exception as e:
             return str(e)
-    
+
     @classmethod
     def delete_all(cls):
         try:
@@ -143,7 +150,7 @@ class ImageModel(db.Model):
             if all:
                 result = {}
                 for image in all:
-                    err = cls.delete(_id = image.id)
+                    err = cls.delete(_id=image.id)
                     if err:
                         result[image.id] = err
                 if result:
@@ -151,7 +158,39 @@ class ImageModel(db.Model):
                         "not all images are deleted"
                     )
                 return {"success": "all images deleted"}, None
-            raise ImageModelException("No image found" )
+            raise ImageModelException("No image found")
         except Exception as e:
             return None, str(e)
-        
+
+    @classmethod
+    def get_metadata_by_id(cls, _id: int) -> (any, any):
+        try:
+            image: ImageModel = cls.find_by_id(_id)
+            if image:
+                return image.get_metadata()
+            raise ImageModelException("image is not found")
+        except Exception as e:
+            return None, str(e)
+
+    def get_metadata(self):
+        try:
+            if self.force_load_from_image:
+                self.exif_json = {}
+                self.save_to_db()
+            metadata = self.exif_json
+            if not metadata and self.create_on_the_fly:
+                with ExifTool() as exiftool:
+                    _metadata = exiftool.get_metadata(self.path)[0]
+                _has_exif = True if _metadata else False
+                if not _has_exif:
+                    _metadata = {"EXIF": "No EXIF data found in the image"}
+
+                self.exif_json = _metadata
+                self.save_to_db()
+            metadata = self.exif_json
+
+            if not metadata:
+                raise ImageModelException("metadata not yet ready")
+            return metadata, None
+        except Exception as e:
+            return None, str(e)
