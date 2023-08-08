@@ -1,6 +1,7 @@
 import json
 import os
 import shutil
+import base64
 
 from werkzeug.datastructures import FileStorage
 from datetime import datetime
@@ -10,6 +11,7 @@ from ...config import ConfigClass
 from ...image_proc import hash
 from ...image_proc.file_utilities import load_image_from_werkzeug_cache as image_loader
 from ...image_proc.exif import ExifTool
+from ...image_proc.image_tools import ImageTools
 
 
 class ImageModelException(Exception):
@@ -61,11 +63,17 @@ class ImageModel(db.Model):
         self.save_to_db()
         return
 
-    def jsonify(self):
+    def jsonify(self, has_thumbnail=False):
         result = {
+            # "id": self.id,
             "upload time": self.datetime.strftime("%Y-%m-%d %H:%M:%S"),
-
         }
+        result["metadata"], _ = self.get_metadata()
+
+        if has_thumbnail:
+            thumbnail, _ = self.get_thumbnail()
+            result["thumbnail"] = thumbnail["thumbnail"]
+
         return result
 
     @classmethod
@@ -123,7 +131,7 @@ class ImageModel(db.Model):
             if all:
                 result = {}
                 for image in all:
-                    result[image.id] = image.jsonify()
+                    result[image.id] = image.jsonify(has_thumbnail=True)
                 return result, None
             raise ImageModelException("No image found")
         except Exception as e:
@@ -192,5 +200,37 @@ class ImageModel(db.Model):
             if not metadata:
                 raise ImageModelException("metadata not yet ready")
             return metadata, None
+        except Exception as e:
+            return None, str(e)
+
+    @classmethod
+    def get_thumbnail_by_id(cls, _id: int) -> (any, any):
+        try:
+            image: ImageModel = cls.find_by_id(_id)
+            if image:
+                return image.get_thumbnail()
+            raise ImageModelException("image is not found")
+        except Exception as e:
+            return None, str(e)
+
+    def get_thumbnail(self):
+        try:
+            if not self.thumbnail:
+                with ImageTools(self.path) as image_tools:
+                    self.thumbnail = image_tools.create_thumbnail()
+                    print("save thumbnail")
+                    self.save_to_db()
+
+            if not self.thumbnail:
+                print("no thumbnail")
+                raise ImageModelException("Failed to create thumbnail")
+
+            base64_encoded_thumbnail = base64.b64encode(self.thumbnail).decode("utf-8")
+
+            return {
+                "id": self.id,
+                "thumbnail": base64_encoded_thumbnail}, None
+
+            pass
         except Exception as e:
             return None, str(e)

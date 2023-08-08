@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "anandas",
+        "exif",
+        "exiftool",
         "jsonify",
         "mylogger",
         "onedrive",
@@ -8,6 +10,7 @@
         "SIGTERM",
         "SQLALCHEMY",
         "tendo",
+        "tobytes",
         "werkzeug",
         "wsgi"
     ]

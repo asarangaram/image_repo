@@ -77,3 +77,13 @@ class ImageMetadata(Resource):
             return {"message": e}, 400
 
         return metadata, 201
+
+
+class ImageThumbnail(Resource):
+    def get(cls, image_id: int):
+        metadata, e = ImageModel.get_thumbnail_by_id(image_id)
+        if e:
+            print(e)
+            return {"message": e}, 400
+
+        return metadata, 201
