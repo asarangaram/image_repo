@@ -65,8 +65,8 @@ class ImageModel(db.Model):
 
     def jsonify(self, has_thumbnail=False):
         result = {
-            # "id": self.id,
-            "upload time": self.datetime.strftime("%Y-%m-%d %H:%M:%S"),
+            "id": self.id,
+            "uploadtime": self.datetime.strftime("%Y-%m-%d %H:%M:%S"),
         }
         result["metadata"], _ = self.get_metadata()
 
@@ -129,9 +129,9 @@ class ImageModel(db.Model):
         try:
             all = cls.find_all()
             if all:
-                result = {}
+                result = []
                 for image in all:
-                    result[image.id] = image.jsonify(has_thumbnail=True)
+                    result.append(image.jsonify(has_thumbnail=True))
                 return result, None
             raise ImageModelException("No image found")
         except Exception as e:
