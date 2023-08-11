@@ -1,3 +1,4 @@
+from io import BytesIO
 from PIL import Image
 
 
@@ -11,22 +12,22 @@ class ImageTools(object):
         self.image_name = filename
 
     def __enter__(self):
-        self.original_image = Image.open(self.image_name)
+
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
         pass
 
     def create_thumbnail(self):
-
+        print(f"Creating thumbnail for image {self.image_name}")
         try:
-            print("Creating thumbnail for image {self.image_name}")
+            image = Image.open(self.image_name)
+            image.thumbnail((256, 256 - 64))
+            # image.save(f"{self.image_name}.png", format='png')
+            temp = BytesIO()
+            image.save(temp, format='png')
+            # thumbnail_image_bytes = image.convert("RGB").tobytes()
 
-            thumbnail_size = (100, 100)  # Todo: Configurable
-            thumbnail_image = self.original_image.copy()
-            thumbnail_image.thumbnail(thumbnail_size)
-
-            thumbnail_image_bytes = thumbnail_image.convert("RGB").tobytes()
-            return thumbnail_image_bytes
+            return temp.getbuffer()
         except Exception as e:
             raise ImageToolsException(f"Failed to create thumbnail; {e}")

@@ -11,4 +11,4 @@ api.add_resource(Image, "/<int:image_id>")
 
 api.add_resource(ImageMetadata, "/<int:image_id>/metadata")
 api.add_resource(ImageThumbnail, "/<int:image_id>/thumbnail")
-api.add_resource(Images, "/thumbnails")
+api.add_resource(Images, "/list")

@@ -12,7 +12,11 @@
         "SQLALCHEMY",
         "tendo",
         "tobytes",
+        "uploadtime",
         "werkzeug",
         "wsgi"
+    ],
+    "cSpell.enableFiletypes": [
+        "!python"
     ]
 }

@@ -10,7 +10,7 @@ from ...db import db
 from ...config import ConfigClass
 from ...image_proc import hash
 from ...image_proc.file_utilities import load_image_from_werkzeug_cache as image_loader
-from ...image_proc.exif import ExifTool
+from ...image_proc.metadata import ExifTool
 from ...image_proc.image_tools import ImageTools
 
 
@@ -71,8 +71,9 @@ class ImageModel(db.Model):
         result["metadata"], _ = self.get_metadata()
 
         if has_thumbnail:
-            thumbnail, _ = self.get_thumbnail()
-            result["thumbnail"] = thumbnail["thumbnail"]
+            thumbnail, err = self.get_thumbnail()
+            if err is None:
+                result["thumbnail"] = thumbnail["thumbnail"]
 
         return result
 
@@ -215,22 +216,16 @@ class ImageModel(db.Model):
 
     def get_thumbnail(self):
         try:
-            if not self.thumbnail:
-                with ImageTools(self.path) as image_tools:
-                    self.thumbnail = image_tools.create_thumbnail()
-                    print("save thumbnail")
-                    self.save_to_db()
+            #  For now don't save thumbnail
+            self.thumbnail = b''
+            self.save_to_db()
 
-            if not self.thumbnail:
-                print("no thumbnail")
-                raise ImageModelException("Failed to create thumbnail")
+            with ImageTools(self.path) as image_tools:
+                thumbnail = image_tools.create_thumbnail()
+                base64_encoded_thumbnail = base64.b64encode(thumbnail).decode("utf-8")
+                return {
+                    "id": self.id,
+                    "thumbnail": base64_encoded_thumbnail}, None
 
-            base64_encoded_thumbnail = base64.b64encode(self.thumbnail).decode("utf-8")
-
-            return {
-                "id": self.id,
-                "thumbnail": base64_encoded_thumbnail}, None
-
-            pass
         except Exception as e:
             return None, str(e)

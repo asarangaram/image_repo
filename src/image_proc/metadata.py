@@ -53,8 +53,18 @@ class ExifTool(object):
                 '"'))
         for i, _metadata in enumerate(_metadata_list):
             _metadata.pop('SourceFile', None)
-            _metadata.pop('File', None)
+            # _metadata.pop('File', None)
             _metadata.pop('ExifTool', None)
+            if "File" in _metadata:
+                _metadata["File"].pop("Directory", None)
+                _metadata["File"].pop("FilePermissions", None)
+                _metadata["File"].pop("FileTypeExtension", None)
+
+                _metadata["File"].pop("FileAccessDate", None)
+                _metadata["File"].pop("FileModifyDate", None)
+                _metadata["File"].pop("FilePermissions", None)
+                _metadata["File"].pop("FileTypeExtension", None)
+
             if "EXIF" in _metadata:
                 _metadata["EXIF"].pop("Padding", None)
                 _metadata["EXIF"].pop("ThumbnailOffset", None)
