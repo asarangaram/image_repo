@@ -27,7 +27,7 @@ class ImageModel(db.Model):
     path = db.Column(db.UnicodeText, nullable=True)
     datetime = db.Column(db.DateTime, nullable=False)
     exif_json = db.Column(db.JSON, default={})
-    thumbnail = db.Column(db.LargeBinary, default=b"")
+    thumbnail = db.Column(db.LargeBinary, default=b"")  # TODO Remove this
     hash_json = db.Column(db.JSON, default={})
     sha512hash = db.Column(db.String(128), nullable=False, unique=True)
     create_on_the_fly = True
@@ -68,13 +68,14 @@ class ImageModel(db.Model):
             "id": self.id,
             "uploadtime": self.datetime.strftime("%Y-%m-%d %H:%M:%S"),
         }
-        result["metadata"], _ = self.get_metadata()
+        # result["metadata"], _ = self.get_metadata()
 
+        """
         if has_thumbnail:
-            thumbnail, err = self.get_thumbnail()
-            if err is None:
-                result["thumbnail"] = thumbnail["thumbnail"]
-
+                    thumbnail, err = self.get_thumbnail()
+                    if err is None:
+                        result["thumbnail"] = thumbnail["thumbnail"]
+        """
         return result
 
     @classmethod
@@ -99,7 +100,7 @@ class ImageModel(db.Model):
 
             has_duplicate = cls.find_by_sha512hash(sha512hash)
             if has_duplicate:
-                return has_duplicate, f"Duplicate Found"
+                return has_duplicate, None
 
             entity = ImageModel(
                 image=image, sha512hash=sha512hash, private_key=cls.__private_key
@@ -130,6 +131,7 @@ class ImageModel(db.Model):
         try:
             all = cls.find_all()
             if all:
+
                 result = []
                 for image in all:
                     result.append(image.jsonify(has_thumbnail=True))
@@ -214,18 +216,19 @@ class ImageModel(db.Model):
         except Exception as e:
             return None, str(e)
 
-    def get_thumbnail(self):
+    def get_thumbnail_path(self):
         try:
-            #  For now don't save thumbnail
-            self.thumbnail = b''
-            self.save_to_db()
+            thumbnail = os.path.join(
+                ConfigClass.FILE_STORAGE_LOCATION, f"image_{str(self.id)}", "thumbnail.png"
+            )
 
-            with ImageTools(self.path) as image_tools:
-                thumbnail = image_tools.create_thumbnail()
-                base64_encoded_thumbnail = base64.b64encode(thumbnail).decode("utf-8")
-                return {
-                    "id": self.id,
-                    "thumbnail": base64_encoded_thumbnail}, None
+            if not os.path.isfile(thumbnail):
+                with ImageTools(self.path) as image_tools:
+                    image_tools.create_thumbnail(thumbnail)
+
+            if os.path.isfile(thumbnail):
+                return thumbnail, None
+            raise ImageModelException("Unable to create thumbnail")
 
         except Exception as e:
             return None, str(e)

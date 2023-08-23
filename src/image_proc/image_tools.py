@@ -18,16 +18,17 @@ class ImageTools(object):
     def __exit__(self, exc_type, exc_value, traceback):
         pass
 
-    def create_thumbnail(self):
+    def create_thumbnail(self, thumbnail):
         print(f"Creating thumbnail for image {self.image_name}")
         try:
             image = Image.open(self.image_name)
-            image.thumbnail((256, 256 - 64))
+            image.thumbnail((256, 256))
+            image.save(thumbnail, format='png')
             # image.save(f"{self.image_name}.png", format='png')
-            temp = BytesIO()
-            image.save(temp, format='png')
+            # temp = BytesIO()
+            # image.save(temp, format='png')
             # thumbnail_image_bytes = image.convert("RGB").tobytes()
 
-            return temp.getbuffer()
+            return
         except Exception as e:
             raise ImageToolsException(f"Failed to create thumbnail; {e}")

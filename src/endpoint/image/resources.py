@@ -81,9 +81,16 @@ class ImageMetadata(Resource):
 
 class ImageThumbnail(Resource):
     def get(cls, image_id: int):
-        metadata, e = ImageModel.get_thumbnail_by_id(image_id)
-        if e:
-            print(e)
-            return {"message": e}, 400
+        try:
+            image, e = ImageModel.get(image_id)
+            if e:
+                return {"message": e}, 400
+            thumbnail, e = image.get_thumbnail_path()
+            if e:
+                return {"message": e}, 400
+            return send_file(
+                thumbnail, mimetype="image/jpeg", download_name=f"{image_id}_thumbnail.png"
+            )
 
-        return metadata, 201
+        except Exception as e:
+            return {"message": e}, 400
