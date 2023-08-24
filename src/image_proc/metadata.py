@@ -43,10 +43,10 @@ class ExifTool(object):
     def get_metadata(self, *filenames):
         _metadata_list = json.loads(
             self.execute(
-                "-g",
+                # "-g",
                 "-j",
                 "-n",
-                "-b",
+                # "-b",
                 *
                 filenames).decode('utf8').replace(
                 "'",

@@ -6,11 +6,13 @@ import base64
 from werkzeug.datastructures import FileStorage
 from datetime import datetime
 
+from .metadata import EXIFModel
+
 from ...db import db
 from ...config import ConfigClass
 from ...image_proc import hash
 from ...image_proc.file_utilities import load_image_from_werkzeug_cache as image_loader
-from ...image_proc.metadata import ExifTool
+
 from ...image_proc.image_tools import ImageTools
 
 
@@ -32,6 +34,8 @@ class ImageModel(db.Model):
     sha512hash = db.Column(db.String(128), nullable=False, unique=True)
     create_on_the_fly = True
     force_load_from_image = True
+
+    exif = db.relationship("EXIFModel", uselist=False, backref="images")
 
     def __init__(self, image, sha512hash, private_key=None):
         if private_key != ImageModel.__private_key:
@@ -68,14 +72,6 @@ class ImageModel(db.Model):
             "id": self.id,
             "uploadtime": self.datetime.strftime("%Y-%m-%d %H:%M:%S"),
         }
-        # result["metadata"], _ = self.get_metadata()
-
-        """
-        if has_thumbnail:
-                    thumbnail, err = self.get_thumbnail()
-                    if err is None:
-                        result["thumbnail"] = thumbnail["thumbnail"]
-        """
         return result
 
     @classmethod
@@ -110,6 +106,8 @@ class ImageModel(db.Model):
                 entity.save_to_db()
                 entity.set_path()
                 entity.save_image(image_data)
+                EXIFModel.read_from_image(entity)
+
                 return entity, None
             raise ImageModelException("Failed to upload")
         except Exception as e:
@@ -130,13 +128,11 @@ class ImageModel(db.Model):
     def get_all(cls):
         try:
             all = cls.find_all()
+            result = []
             if all:
-
-                result = []
                 for image in all:
                     result.append(image.jsonify(has_thumbnail=True))
-                return result, None
-            raise ImageModelException("No image found")
+            return result, None
         except Exception as e:
             return None, str(e)
 
@@ -170,49 +166,6 @@ class ImageModel(db.Model):
                     )
                 return {"success": "all images deleted"}, None
             raise ImageModelException("No image found")
-        except Exception as e:
-            return None, str(e)
-
-    @classmethod
-    def get_metadata_by_id(cls, _id: int) -> (any, any):
-        try:
-            image: ImageModel = cls.find_by_id(_id)
-            if image:
-                return image.get_metadata()
-            raise ImageModelException("image is not found")
-        except Exception as e:
-            return None, str(e)
-
-    def get_metadata(self):
-        try:
-            if self.force_load_from_image:
-                self.exif_json = {}
-                self.save_to_db()
-            metadata = self.exif_json
-            if not metadata and self.create_on_the_fly:
-                with ExifTool() as exiftool:
-                    _metadata = exiftool.get_metadata(self.path)[0]
-                _has_exif = True if _metadata else False
-                if not _has_exif:
-                    _metadata = {"EXIF": "No EXIF data found in the image"}
-
-                self.exif_json = _metadata
-                self.save_to_db()
-            metadata = self.exif_json
-
-            if not metadata:
-                raise ImageModelException("metadata not yet ready")
-            return metadata, None
-        except Exception as e:
-            return None, str(e)
-
-    @classmethod
-    def get_thumbnail_by_id(cls, _id: int) -> (any, any):
-        try:
-            image: ImageModel = cls.find_by_id(_id)
-            if image:
-                return image.get_thumbnail()
-            raise ImageModelException("image is not found")
         except Exception as e:
             return None, str(e)
 
