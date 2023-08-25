@@ -2,9 +2,10 @@ import json
 import os
 import shutil
 import base64
-
+from dateutil import parser
 from ...db import db
 from ...image_proc.metadata import ExifTool
+import humanize
 
 
 class ImageModelException(Exception):
@@ -54,15 +55,30 @@ class EXIFModel(db.Model):
     GPSLatitude = db.Column(db.Double)
     GPSLongitude = db.Column(db.Double)
 
+    yy = db.Column(db.Integer)
+    mm = db.Column(db.Integer)
+    dd = db.Column(db.Integer)
+    HH = db.Column(db.Integer)
+    DAY = db.Column(db.Integer)
+
     def __init__(self, data, private_key=None):
         if private_key != EXIFModel.__private_key:
             raise ImageModelException("Use Class Method  fromJSON.")
 
         for key, value in data.items():
             setattr(self, key, value)
-        missing = []
-        for key, value in self.__dict__.items():
-            print(key)
+
+        if self.DateTimeOriginal:
+            temp0 = self.DateTimeOriginal
+            dateTime = temp0.split(' ')
+            temp1 = f"{dateTime[0].replace(':', '-')} {dateTime[1]}"
+            print(f"{temp0} -> {temp1}")
+            temp = parser.parse(temp1)
+            self.yy = temp.year
+            self.mm = temp.month
+            self.dd = temp.day
+            self.HH = temp.hour
+            self.DAY = temp.weekday()
 
     def __repr__(self):
         attributes = ', '.join([f"{key}={value}" for key, value in self.__dict__.items()])
@@ -70,8 +86,6 @@ class EXIFModel(db.Model):
 
     @classmethod
     def fromJSON(cls, json_data):
-        print(json_data)
-        # data = json.loads(json_data)
         exif = EXIFModel(json_data, private_key=cls.__private_key)
         return exif
 
@@ -90,13 +104,10 @@ class EXIFModel(db.Model):
 
     @classmethod
     def read_from_image(cls, image):
-        try:
-            with ExifTool() as exiftool:
-                metadata = exiftool.get_metadata(image.path)[0]
-                exif = EXIFModel.fromJSON(metadata)
-                exif.image_id = image.id
-                exif.save_to_db()
+        metadata = ExifTool.exiftool(image.path)
+        exif = EXIFModel.fromJSON(metadata)
+        exif.image_id = image.id
 
-                return exif
-        except Exception as e:
-            return None, e
+        exif.save_to_db()
+
+        return exif

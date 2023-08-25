@@ -125,13 +125,26 @@ class ImageModel(db.Model):
             return None, str(e)
 
     @classmethod
+    def groupByDate(cls, all):
+        result = {}
+        for image in all:
+            tag = "not dated"
+            exif = image.exif
+            if exif and exif.yy and exif.mm and exif.dd:
+                tag = f"{exif.yy} {exif.mm} {exif.dd}"
+            if tag not in result:
+                result[tag] = []
+            result[tag].append(image.jsonify(has_thumbnail=True))
+
+        return result
+
+    @classmethod
     def get_all(cls):
         try:
             all = cls.find_all()
-            result = []
+            result = {}
             if all:
-                for image in all:
-                    result.append(image.jsonify(has_thumbnail=True))
+                result = cls.groupByDate(all)
             return result, None
         except Exception as e:
             return None, str(e)
