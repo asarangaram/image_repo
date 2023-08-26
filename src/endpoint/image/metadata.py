@@ -3,6 +3,8 @@ import os
 import shutil
 import base64
 from dateutil import parser
+
+from ...utils.text2date import Text2Time
 from ...db import db
 from ...image_proc.metadata import ExifTool
 import humanize
@@ -55,11 +57,11 @@ class EXIFModel(db.Model):
     GPSLatitude = db.Column(db.Double)
     GPSLongitude = db.Column(db.Double)
 
-    yy = db.Column(db.Integer)
-    mm = db.Column(db.Integer)
-    dd = db.Column(db.Integer)
-    HH = db.Column(db.Integer)
-    DAY = db.Column(db.Integer)
+    year = db.Column(db.Integer)
+    month = db.Column(db.Integer)
+    day = db.Column(db.Integer)
+    hour = db.Column(db.Integer)
+    weekday = db.Column(db.Integer)
 
     def __init__(self, data, private_key=None):
         if private_key != EXIFModel.__private_key:
@@ -69,16 +71,15 @@ class EXIFModel(db.Model):
             setattr(self, key, value)
 
         if self.DateTimeOriginal:
-            temp0 = self.DateTimeOriginal
-            dateTime = temp0.split(' ')
-            temp1 = f"{dateTime[0].replace(':', '-')} {dateTime[1]}"
-            print(f"{temp0} -> {temp1}")
-            temp = parser.parse(temp1)
-            self.yy = temp.year
-            self.mm = temp.month
-            self.dd = temp.day
-            self.HH = temp.hour
-            self.DAY = temp.weekday()
+            time = Text2Time(self.DateTimeOriginal).dateTime
+            if time:
+                self.year = time.year
+                self.month = time.month
+                self.day = time.day
+                self.hour = time.hour
+                self.weekday = time.weekday()
+            else:
+                self.__delattr__("DateTimeOriginal")
 
     def __repr__(self):
         attributes = ', '.join([f"{key}={value}" for key, value in self.__dict__.items()])

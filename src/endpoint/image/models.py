@@ -130,8 +130,8 @@ class ImageModel(db.Model):
         for image in all:
             tag = "not dated"
             exif = image.exif
-            if exif and exif.yy and exif.mm and exif.dd:
-                tag = f"{exif.yy} {exif.mm} {exif.dd}"
+            if exif and exif.year and exif.month and exif.day:
+                tag = f"{exif.year} {exif.month} {exif.day}"
             if tag not in result:
                 result[tag] = []
             result[tag].append(image.jsonify(has_thumbnail=True))
