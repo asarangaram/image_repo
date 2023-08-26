@@ -76,6 +76,19 @@ cd test
 python test_api.py
 ```
 
+# Client services
+httpie's http can be used to interact.
+
+## to upload a file
+```
+http -f POST :5000/image/upload image@<ImagePath>
+```
+
+## To upload a directory
+```
+find . -type f -exec echo "{}" \; -exec http -f POST :5000/image/upload image@"{}" \; |& tee ../upload4.log
+```
+
 ## DANGER ZONE, DON'T TRY ON DEPLOYED SERVER
 
 to delete all the images from db, after starting the server,
