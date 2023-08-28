@@ -5,7 +5,7 @@ import shlex
 import re
 # Create a custom logger
 _logger = logging.getLogger("exif_tool.log")
-_logger.setLevel(logging.DEBUG)
+_logger.setLevel(logging.INFO)
 
 # Create a handler and formatter
 handler = logging.StreamHandler()
