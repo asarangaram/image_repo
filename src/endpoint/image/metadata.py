@@ -9,10 +9,8 @@ from ...db import db
 from ...image_proc.metadata import ExifTool
 import humanize
 
-
 class ImageModelException(Exception):
     pass
-
 
 class EXIFModel(db.Model):
     __private_key = object()

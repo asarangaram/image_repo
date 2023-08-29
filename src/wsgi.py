@@ -5,5 +5,5 @@ from .config import ConfigClass
 
 app = create_app(ConfigClass)
 
-if __name__ == '__main__':   
+if __name__ == '__main__':
     app.run(debug=True,)
