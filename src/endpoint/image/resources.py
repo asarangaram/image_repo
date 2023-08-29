@@ -1,4 +1,5 @@
 from flask import request, send_file
+from flask import render_template, make_response
 from flask_restful import Resource
 import logging
 
@@ -33,6 +34,16 @@ class Upload(Resource):
         except Exception as e:
             logging.debug(str(e))
             return {"message": str(e)}, 400
+
+
+class TestUpload(Resource):
+    def get(self):
+        name = request.args.get("name")
+        if not name:
+            name = "guest"
+        headers = {'Content-Type': 'text/html'}
+        return make_response(render_template('upload.html'), 200,
+                             headers)
 
 
 class Image(Resource):
