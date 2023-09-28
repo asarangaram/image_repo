@@ -5,6 +5,24 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "env": {
+                "MYSQL_IMAGE_REPO": "image_repo_db",
+                "MYSQL_IMAGE_REPO_ADMIN": "image_repo_admin",
+                "MYSQL_IMAGE_REPO_ADMIN_PW": "3E$R5t6y7",
+                "FLASK_DEBUG": "0",
+                "PYTHONPATH": "/disks/data/git/github/asarangaram/image_repo",
+                // Just to bypass the config class
+                "APP_NAME": "Face",
+                "FILE_STORAGE_LOCATION": "/disks/data/image_repo"
+            },
+            "program": "${file}",
+            "console": "integratedTerminal",
+            "justMyCode": true
+        },
+        {
             "name": "Server",
             "type": "python",
             "request": "launch",
