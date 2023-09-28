@@ -25,20 +25,26 @@ class FaceDB(Base):
     id = Column(Integer, primary_key=True)
     json_data = Column(JSON)
 
-    def __init__(self, image):
-
+    def __init__(self, session, image):
         self.id = image["id"]
-        self.json = image
-
-    def save(self, session):
-        self.json_data = json.dumps(self.json)
-        r = self.load(session, self.id)
+        self.session = session
+        r = self.load(self.session, self.id)
         if r:
-            r.json_data = self.json_data
+            self.json = json.loads(r.json_data)
+            self.is_new = False
         else:
-            session.add(self)
+            self.json = image
+            self.is_new = True
 
-        session.commit()
+    def update(self, key, value):
+        self.json[key] = value
+        pass
+
+    def save(self):
+        self.json_data = json.dumps(self.json)
+        if self.is_new:
+            self.session.add(self)
+        self.session.commit()
 
     @classmethod
     def load(cls, session, user_id):
