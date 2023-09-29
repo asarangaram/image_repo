@@ -16,8 +16,18 @@ def detect_faces(img, detector=detector0, prob_low=0):
     boxes, probs = detector.detect(img)
     if boxes is None:
         return []
-    return [{"pos": [int(b) for b in box], "prob": prob}
+    return [{"pos": bounded_box(box, img), "prob": prob}
             for (box, prob) in zip(boxes, probs) if prob > prob_low]
+
+
+def bounded_box(box, img):
+    x0, y0, x1, y1 = box
+    height, width, _ = img.shape
+    x0 = int(min(width, max(0, x0)))
+    x1 = int(min(width, max(0, x1)))
+    y0 = int(min(height, max(0, y0)))
+    y1 = int(min(height, max(0, y1)))
+    return [x0, y0, x1, y1]
 
 
 if __name__ == '__main__':

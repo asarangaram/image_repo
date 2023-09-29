@@ -31,12 +31,18 @@ class FaceScanner(FaceDB):
     def detect_faces(self, method: str, detect_faces_fn, retry=False):
         if method not in self.json or retry:
             img = cv2.imread(self.json["path"])
-            faces = detect_faces_fn(img, prob_low=0.9)
+            if img is not None:
+                try:
+                    faces = detect_faces_fn(img, prob_low=0.9)
+                except BaseException:
+                    print(f'{self.json["id"]} failed')
 
-            self.update(method, faces)
+                self.update(method, faces)
 
-            self.save_faces(
-                method, img, )
+                self.save_faces(method, img, )
+            else:
+                logger.critical(
+                    f'Error: decode failed, image id {self.json["id"]}, path:{self.json["path"]}')
         return self
 
     def save_faces(self, method, img):
@@ -60,12 +66,18 @@ def scan_db_for_faces(start=0, count=1000, db_uri=ConfigClass.SQLALCHEMY_DATABAS
     with DBase(db_uri) as db:
         FaceScanner.create_table(db.session)
         for image in images:
-            FaceScanner(db.session, image).detect_faces("facenet_pytorch", detect_faces).save()
+            FaceScanner(
+                db.session,
+                image).detect_faces(
+                "facenet_pytorch",
+                detect_faces,
+                retry=True).save()
     return f"start={start}, count={count}"
 
 
 if __name__ == '__main__':
     batch_size = 100
+
     for i in range(578):
         try:
             scan_db_for_faces(start=i * batch_size, count=batch_size)
