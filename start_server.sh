@@ -49,4 +49,6 @@ install_packages_from_requirements() {
 # Call the function
 create_venv
 
+avahi-publish-service -s "CL IMAGE REPO" _image_repo_api._tcp 5000 "CL Image Repo Service" &
 python -m src.wsgi
+
