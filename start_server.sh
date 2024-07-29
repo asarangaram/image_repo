@@ -18,12 +18,14 @@ create_venv() {
         install_packages_from_requirements "requirements.txt"
     else
         echo "$V_ENV Found"
+        
         if [ -f "${V_ENV}/bin/activate" ]; then
             source "${V_ENV}/bin/activate"
         else
             echo "Error: Virtual environment activation script not found."
             exit 1
         fi
+        install_packages_from_requirements "requirements.txt"
     fi
     
 }

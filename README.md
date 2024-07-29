@@ -11,9 +11,9 @@ give `image_repo_admin` permission to access `image_repo_db`
 Setup the following environment variables. change the values as required.
 ```
 export APP_NAME="Image Repo"
-export MYSQL_IMAGE_REPO='image_repo_db'
-export MYSQL_IMAGE_REPO_ADMIN='image_repo_admin'
-export MYSQL_IMAGE_REPO_ADMIN_PW=<password>
+export IMAGE_REPO_DB='image_repo_db'
+export IMAGE_REPO_DB_ADMIN='image_repo_admin'
+export IMAGE_REPO_DB_ADMIN_PW=<password>
 # Do not use relative path
 export FILE_STORAGE_LOCATION="/disks/data/image_repo"
 ```

@@ -9,9 +9,9 @@
             "type": "python",
             "request": "launch",
             "env": {
-                "MYSQL_IMAGE_REPO": "image_repo_db",
-                "MYSQL_IMAGE_REPO_ADMIN": "image_repo_admin",
-                "MYSQL_IMAGE_REPO_ADMIN_PW": "3E$R5t6y7",
+                "IMAGE_REPO_DB": "image_repo_db",
+                "IMAGE_REPO_DB_ADMIN": "image_repo_admin",
+                "IMAGE_REPO_DB_ADMIN_PW": "3E$R5t6y7",
                 "FLASK_DEBUG": "0",
                 "PYTHONPATH": "/disks/data/git/github/asarangaram/image_repo",
                 // Just to bypass the config class
@@ -29,9 +29,9 @@
             "module": "flask",
             "env": {
                 "APP_NAME": "image_repo",
-                "MYSQL_IMAGE_REPO": "image_repo_db",
-                "MYSQL_IMAGE_REPO_ADMIN": "image_repo_admin",
-                "MYSQL_IMAGE_REPO_ADMIN_PW": "3E$R5t6y7",
+                "IMAGE_REPO_DB": "image_repo_db",
+                "IMAGE_REPO_DB_ADMIN": "image_repo_admin",
+                "IMAGE_REPO_DB_ADMIN_PW": "3E$R5t6y7",
                 "FILE_STORAGE_LOCATION": "/disks/data/image_repo",
                 "FLASK_APP": "src/wsgi.py",
                 "FLASK_DEBUG": "1"
