@@ -51,6 +51,9 @@ install_packages_from_requirements() {
 # Call the function
 create_venv
 
-avahi-publish-service -s "CL IMAGE REPO" _image_repo_api._tcp 5000 "CL Image Repo Service" &
+os_name=$(uname)
+if [ "$os_name" == "Linux" ]; then
+    avahi-publish-service -s "CL IMAGE REPO" _image_repo_api._tcp 5000 "CL Image Repo Service" &
+fi
 python -m src.wsgi
 
