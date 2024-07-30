@@ -2,7 +2,7 @@ from flask.views import MethodView
 from flask_smorest import Blueprint, abort
 
 from .models import LandingPageModel
-from .schemas import LandingPageRequestSchema, LandingPageResultSchema
+from .schemas import  LandingPageResultSchema
 
 landing_bp = Blueprint('landing_bp', __name__, url_prefix='')
 

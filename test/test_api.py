@@ -23,7 +23,7 @@ class MyTestCase(unittest.TestCase):
             output = self.app.get('/')
             received_json = json.loads(output.data)
             mylogger.info(received_json)
-            if not received_json["hello"] == "guest":
+            if not received_json["name"] == "guest":
                 assert False
         except:
             assert(False)
@@ -40,11 +40,13 @@ class MyTestCase(unittest.TestCase):
         assert ("id" in received_json)
             
     def test_image_upload_single_image(self):
-        test_image = "/disks/data/onedrive/mediaFromAnandaS/grouped/windows_phone/ExtraMedia/Photos/Photos/WP_20150722_12_09_29_Pro.jpg"
-        self.image_upload("WP_20150722_12_09_29_Pro2.jpg", test_image)
+        test_image = "images/Screenshot 2024-07-17 at 19.30.57.jpeg"
+        self.image_upload("Screenshot 2024-07-17 at 19.30.57.jpeg", test_image)
     
     def test_image_upload_dir_recursive(self):
-        source_dir = "/disks/data/onedrive/mediaFromAnandaS/grouped/windows_phone/ExtraMedia"
+        source_dir = "images"
+        if not os.path.isdir(os.path.abspath(source_dir)):
+            assert(False)
         images = [y for x in os.walk(source_dir) for y in glob(os.path.join(x[0], '*.*'))]
 
         for image in images:

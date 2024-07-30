@@ -10,4 +10,4 @@ class LandingPageModel:
         self.name = name
         self.info = _info
     def jsonify(self):
-        return {"hello": self.name, "info":self.info}
+        return {"name": self.name, "info":self.info}

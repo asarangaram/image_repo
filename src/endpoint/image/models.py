@@ -28,9 +28,6 @@ class ImageModel(db.Model):
     name = db.Column(db.UnicodeText, nullable=False)
     path = db.Column(db.UnicodeText, nullable=True)
     datetime = db.Column(db.DateTime, nullable=False)
-    exif_json = db.Column(db.JSON, default={})
-    thumbnail = db.Column(db.LargeBinary, default=b"")  # TODO Remove this
-    hash_json = db.Column(db.JSON, default={})
     sha512hash = db.Column(db.String(128), nullable=False, unique=True)
     create_on_the_fly = True
     force_load_from_image = True
@@ -52,20 +49,31 @@ class ImageModel(db.Model):
         db.session.delete(self)
         db.session.commit()
 
-    def set_path(self):
-        self.path = os.path.join(
-            ConfigClass.FILE_STORAGE_LOCATION, f"image_{str(self.id)}", self.name
-        )
-        self.save_to_db()
+    @classmethod
+    def get_basepath(cls):
+        return ConfigClass.FILE_STORAGE_LOCATION
 
+    @classmethod
+    def get_absolutepath(cls, relPath):
+        if not relPath:
+            return None
+        return os.path.join(cls.get_basepath(), relPath)
+
+    def absolute_path(self):
+        return self.get_absolutepath(self.path)
+    
+    def set_path(self):
+        self.path = os.path.join(f"image_{str(self.id)}", self.name)
+        self.save_to_db()
         return
 
     def save_image(self, bytes_io, overwrite=True):
-        os.makedirs(os.path.dirname(self.path), exist_ok=True)
-        with open(self.path, "wb") as file:
-            file.write(bytes_io.getvalue())
-        self.save_to_db()
-        return
+        if self.absolute_path():
+            os.makedirs(self.absolute_path(), exist_ok=True)
+            with open(self.absolute_path(), "wb") as file:
+                file.write(bytes_io.getvalue())
+            self.save_to_db()
+            return
 
     def jsonify(self, has_thumbnail=False):
         result = {
@@ -189,7 +197,7 @@ class ImageModel(db.Model):
             )
 
             if not os.path.isfile(thumbnail):
-                with ImageTools(self.path) as image_tools:
+                with ImageTools(self.absolute_path()) as image_tools:
                     image_tools.create_thumbnail(thumbnail)
 
             if os.path.isfile(thumbnail):

@@ -1,52 +1,51 @@
 from flask import request, send_file
 from flask import render_template, make_response
-from flask_restful import Resource
+
+from flask.views import MethodView
+from flask_smorest import Blueprint, abort
+
 import logging
+
+from .schemas import MultipartFileSchema, ImageSchema
 
 from .models import ImageModel
 
+image_bp = Blueprint("image_bp", __name__, url_prefix="/image")
 
 class RepoException(Exception):
     pass
 
 
-class Upload(Resource):
-    def post(cls):
+@image_bp.route("/upload")
+class Upload(MethodView):
+    @image_bp.arguments(MultipartFileSchema, location="files")
+    @image_bp.response(201, ImageSchema)
+    def post(cls, files):
         logging.debug("post called")
         try:
-            if "image" not in request.files:
-                logging.debug("No image provided")
-                raise RepoException("No image provided")
-            image = request.files["image"]
+            image = files["image"]
             if image.filename == "":
                 logging.debug("No image name provided")
-                raise RepoException("No image name provided")
+                abort(404, message="No image name provided")
             object, err = ImageModel.create(image=image)
-            result = {}
-            if object:
-                result = object.jsonify()
-                result["id"] = object.id
-            if err:
-                result["message"] = err
-                return result, 500
-
-            return result, 201
+            if err :
+                abort(404, message=err)
+            if not object :
+                abort(404, message='unexpected error')
+            return object
         except Exception as e:
             logging.debug(str(e))
-            return {"message": str(e)}, 400
+            abort(404, message=str(e))
 
-
-class TestUpload(Resource):
+@image_bp.route('/upload/form')
+class TestUpload(MethodView):
     def get(self):
-        name = request.args.get("name")
-        if not name:
-            name = "guest"
         headers = {'Content-Type': 'text/html'}
         return make_response(render_template('upload.html'), 200,
                              headers)
 
-
-class Image(Resource):
+@image_bp.route("/<int:image_id>")
+class Image(MethodView):
     def get(cls, image_id: int):
         try:
             image, e = ImageModel.get(image_id)
@@ -66,8 +65,8 @@ class Image(Resource):
             return {"message": e}, 400
         return {"success": "Image deleted successfully"}
 
-
-class Images(Resource):
+@image_bp.route("/list")
+class Images(MethodView):
     def get(cls):
         all, e = ImageModel.get_all()
         if e:
@@ -80,8 +79,8 @@ class Images(Resource):
             return {"message": e}, 400
         return {"images": all}, 201
 
-
-class ImageMetadata(Resource):
+@image_bp.route("/<int:image_id>/metadata")
+class ImageMetadata(MethodView):
     def get(cls, image_id: int):
         metadata, e = ImageModel.get_metadata_by_id(image_id)
         if e:
@@ -89,8 +88,8 @@ class ImageMetadata(Resource):
 
         return metadata, 201
 
-
-class ImageThumbnail(Resource):
+@image_bp.route("/<int:image_id>/thumbnail")
+class ImageThumbnail(MethodView):
     def get(cls, image_id: int):
         try:
             image, e = ImageModel.get(image_id)
