@@ -1,7 +1,12 @@
-from flask_restful import Resource
+
+from flask.views import MethodView
+from flask_smorest import Blueprint
 
 
-class URLMapResource(Resource):
+URL_map_resouce_bp = Blueprint( 'utils', 'utils', url_prefix='/utils')
+
+@URL_map_resouce_bp.route('/urlmap')
+class URLMapResource(MethodView):
     @classmethod
     def init_app(cls, app):
         cls.app = app

@@ -3,9 +3,9 @@ import os
 from flask import Flask
 
 from .db import db
-from .endpoint.landing.blueprint import landing_bp
-from .endpoint.image.blueprints import image_bp
-from .endpoint.urlmap.blueprint import URL_map_resouce_bp
+from .endpoint.landing.resources import landing_bp
+#from .endpoint.image.blueprints import image_bp
+from .endpoint.urlmap.resources import URL_map_resouce_bp
 from . import lock
 
 from .endpoint.urlmap.resources import URLMapResource
@@ -28,7 +28,7 @@ def create_app(config_object):
 
     # Landing Page
     app.register_blueprint(landing_bp)
-    app.register_blueprint(image_bp)
+    #app.register_blueprint(image_bp)
     app.register_blueprint(URL_map_resouce_bp)
 
     return app
